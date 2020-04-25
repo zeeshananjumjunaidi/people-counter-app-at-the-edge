@@ -36,25 +36,43 @@ class Network:
 
     def __init__(self):
         ### TODO: Initialize any class variables desired ###
-        pass
+        self.plugin = None
+        self.input_blob = None
+        self.exec_network = None
 
-    def load_model(self):
+    def load_model(self, model, device="CPU", cpu_extension=None):
         ### TODO: Load the model ###
+        model_xml = model
+        model_bin = os.path.splitext(model_xml)[0] + ".bin"
+        
+        self.plugin = IECore()
+        if cpu_extension and "CPU" in device:
+            self.plugin.add_extension(cpu_extension, device)
+        
+        # Read the IR as a IENetwork
+        network = IENetwork(model=model_xml, weights=model_bin)
+
+        # Load the IENetwork into the plugin
+        self.exec_network = self.plugin.load_network(network, device)
+
+        # Get the input layer
+        self.input_blob = next(iter(network.inputs))
+
         ### TODO: Check for supported layers ###
         ### TODO: Add any necessary extensions ###
         ### TODO: Return the loaded inference plugin ###
         ### Note: You may need to update the function parameters. ###
-        return
+        return network.inputs[self.input_blob].shape
 
     def get_input_shape(self):
         ### TODO: Return the shape of the input layer ###
-        return
+        return network.inputs[self.input_blob].shape
 
     def exec_net(self):
         ### TODO: Start an asynchronous request ###
         ### TODO: Return any necessary information ###
         ### Note: You may need to update the function parameters. ###
-        return
+        return self.exec_network.requests[0].outputs
 
     def wait(self):
         ### TODO: Wait for the request to be complete. ###
