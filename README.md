@@ -200,3 +200,10 @@ CAMERA_FEED_SERVER: "http://localhost:3004"
 ...
 MQTT_SERVER: "ws://localhost:3002"
 ```
+## Testing Model only
+
+To Test your model on openvino, make sure you have succssfully installed openvino 2020.1+ and python3.6 along with other required
+dependencies such as opencv, numpy, matplotlib, etc...
+navigate to pipeline/testing folder
+run ```./test.sh ```
+You can edit this file change the input file and output directory and model as well.
