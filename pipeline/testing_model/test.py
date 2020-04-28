@@ -6,7 +6,7 @@ import cv2
 import timeit
 from matplotlib import pyplot as plt
 import time
-#from .. import *
+from utility import *
 # CPU_EXTENSION = "/opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_sse4.so"
 CPU_EXTENSION = "/opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libMKLDNNPlugin.so"
 
@@ -20,11 +20,12 @@ def get_args():
     m_desc = "The location of the model XML file"    
     i_desc = "The location of the image input"
     r_desc = "The type of inference request: Async ('A') or Sync ('S')"
-
+    o_desc = "Output directory to save file"
     # -- Create the arguments
     parser.add_argument("-m", help=m_desc)
     parser.add_argument("-i", help=i_desc)
     parser.add_argument("-r", help=i_desc)
+    parser.add_argument("-o", help=o_desc, type=str, default=".")
     parser.add_argument("-d", "--device", type=str, default="CPU",
                         help="Specify the target device to infer on: "
                              "CPU, GPU, FPGA or MYRIAD is acceptable. Sample "
@@ -134,8 +135,15 @@ def main():
             print("infer result: label:%f confidence:%f left:%f top:%f right:%f bottom:%f" %(res[0][0][0][1], res[0][0][0][2], res[0][0][0][3], res[0][0][0][4], res[0][0][0][5], res[0][0][0][6]))
             image = cv2.imread(args.i)
             #image = cv2.imread(input_image)
-            output_img = get_draw_boxes(res,image)
-            plt.show(output_img)
+            output_img,person_counts = get_draw_boxes_on_image(res,image)
+            print(output_img.shape)
+            print(person_counts)
+            file_name = os.path.join(args.o,'output.png')
+            print(file_name)
+            cv2.imwrite(file_name, output_img) 
+            # print('output image shape:{}'.format(output_img.shape))
+            # plt.plot(output_img)
+            # plt.show()
             # print(infer_network.outputs)
             # result = infer_network.get_output(cur_request_id)
             if args.perf_counts:
