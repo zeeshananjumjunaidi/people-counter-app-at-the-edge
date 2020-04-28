@@ -15,4 +15,4 @@ echo "*************"
 LIB="/opt/intel/openvino_2020.2.120/deployment_tools/inference_engine/lib/intel64/libclDNNPlugin.so"
 
 # -t $TAG -c $LIB
-python3.5 ./main.py -i $INPUT -m $MODEL 
+python3.5 pipeline/main.py -i $INPUT -m $MODEL 

@@ -1,4 +1,3 @@
-
 from csv import DictWriter
 import numpy as np
 import cv2

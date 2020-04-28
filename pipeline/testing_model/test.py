@@ -3,7 +3,10 @@ import os
 from openvino.inference_engine import IENetwork, IECore
 from openvino_helper import load_to_IE, preprocessing
 import cv2
-import time
+import timeit
+from matplotlib.pyplot import pyplot as plt
+
+from .. import *
 # CPU_EXTENSION = "/opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_sse4.so"
 CPU_EXTENSION = "/opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libMKLDNNPlugin.so"
 
@@ -129,6 +132,10 @@ def main():
             res = infer_network.infer().get("detection_out")
             print(res.shape)
             print("infer result: label:%f confidence:%f left:%f top:%f right:%f bottom:%f" %(res[0][0][0][1], res[0][0][0][2], res[0][0][0][3], res[0][0][0][4], res[0][0][0][5], res[0][0][0][6]))
+            
+            image = cv2.imread(input_image)
+            output_img = get_draw_boxes(res,image)
+            plt.show(output_img)
             # print(infer_network.outputs)
             # result = infer_network.get_output(cur_request_id)
             if args.perf_counts:
