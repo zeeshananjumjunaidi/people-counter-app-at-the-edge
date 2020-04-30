@@ -10,11 +10,10 @@ They are already called appropriately in inference.py.
 def load_to_IE(model_xml, cpu_extension):
     # Load the Inference Engine API
     plugin = IECore()
-
+    print('loading IE...')
     # Load IR files into their related class
     model_bin = os.path.splitext(model_xml)[0] + ".bin"
-    net = IENetwork()
-    plugin.read_network(model=model_xml, weights=model_bin)
+    net =plugin.read_network(model=model_xml, weights=model_bin)
 
     # Add a CPU extension, if applicable.
     if cpu_extension:
@@ -50,6 +49,7 @@ def preprocessing(input_image, height, width):
     - Transpose the final "channel" dimension to be first
     - Reshape the image to add a "batch" of 1 at the start 
     '''
+    # image = np.array(input_image)
     image = np.copy(input_image)
     image = cv2.resize(image, (width, height))
     image = image.transpose((2,0,1))
