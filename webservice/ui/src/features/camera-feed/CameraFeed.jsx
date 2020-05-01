@@ -25,6 +25,7 @@ class CameraFeed extends React.Component {
       <div className="camera-feed" >
         <div className="camera-feed-container">
           <img src={ this.state.mjpgSrc } alt="camera feed" style={ imgStyle } onClick={ this.refreshImage } className="camera-feed-img" />
+          <button className="expand-button"><i className="fa fa-arrows-alt fa-2x" aria-hidden="true"></i></button>
         </div>
       </div>
     );

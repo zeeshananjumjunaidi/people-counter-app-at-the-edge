@@ -7,7 +7,7 @@ html {
 
 body {
   margin: 0;
-  background: var(--my-white);
+  background: var(--my-dark-gray);
   color: var(--my-white);
   font-family: 'Intel Clear', sans-serif;
   font-weight: 300;

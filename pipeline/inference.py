@@ -113,7 +113,6 @@ class Network:
     def wait(self,id):
         ### TODO: Wait for the request to be complete. ###
         status = self.net_plugin.requests[id].wait(-1)
-        print(status)
         ### TODO: Return any necessary information ###
         ### Note: You may need to update the function parameters. ###
         return status

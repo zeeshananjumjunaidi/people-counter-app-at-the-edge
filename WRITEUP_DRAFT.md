@@ -36,8 +36,15 @@ Cutting TF Model
 https://docs.openvinotoolkit.org/2019_R3/_docs_MO_DG_Deep_Learning_Model_Optimizer_DevGuide.html
 https://classroom.udacity.com/nanodegrees/nd131/
 
+**Pipeline reference**
+https://github.com/intel-iot-devkit/people-counter-python
+
 **Object detection zoo**
 https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md
 
 **Learning Resources**
 https://docs.openvinotoolkit.org/2019_R3/_docs_MO_DG_prepare_model_Model_Optimization_Techniques.html
+
+**CREDIT**
+Pedistrain video for testing
+https://www.videvo.net/video/crowd-on-bangkok-skywalk-bridge-02/457251/
