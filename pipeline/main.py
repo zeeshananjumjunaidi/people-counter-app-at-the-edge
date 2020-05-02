@@ -19,7 +19,9 @@ MQTT_HOST = IPADDRESS
 MQTT_PORT = 3001
 MQTT_KEEPALIVE_INTERVAL = 60
 FONT = cv2.FONT_HERSHEY_SIMPLEX
-ALPHA=0.5
+ALPHA=0.9
+log.root.setLevel(log.NOTSET)
+streaming_enabled=True
 
 def build_argparser():
     """
@@ -54,8 +56,19 @@ def build_argparser():
 def connect_mqtt():
     ### TODO: Connect to the MQTT client ###
     client = mqtt.Client()
+    client.on_message = on_message
+    client.on_connect = on_connect
     client.connect(MQTT_HOST, MQTT_PORT, MQTT_KEEPALIVE_INTERVAL)
+    client.subscribe("settings/streaming")
+    client.loop_start()
     return client
+def on_connect(self, client, userdata, flags, rc):
+    log.info("MQTT connected: result code=%i", rc)
+    print("This is a retained message")
+    
+
+def on_message(client, userdata, message):
+    log.log(log.INFO,"Got something",str(message.payload))
 
 
 def infer_on_stream(args, client):
@@ -79,7 +92,7 @@ def infer_on_stream(args, client):
     message = args.message
     if args.input == 'CAM':
         input_stream = 0
-    elif args.input.endswith('.jpg') or args.input.endswith('.bmp'):
+    elif args.input.endswith('.jpg') or args.input.endswith('.bmp')or args.input.endswith('.png'):
         single_image_mode = True
         input_stream = args.input
     # Checks for video file
@@ -120,14 +133,11 @@ def infer_on_stream(args, client):
             ### TODO: Extract any desired stats from the results ###
 
             output_img, person_counts = get_draw_boxes_on_image(
-                result, frame, prob_threshold)
-
+                result, frame, prob_threshold,True)
             overlay = output_img.copy()
-            if show_info:
-                cv2.circle(overlay, (20,20), 10, (0, 0,255), -1)
-                cv2.circle(overlay, (20,20), 10, (0, 0,50), 2)
+            if show_info:                
                 cv2.putText(overlay,
-                        'Person[s] found: {} {}'.format(person_counts,overlay.shape),
+                        'Person[s] found: {}'.format(person_counts),
                         (10,overlay.shape[0]-60),
                         FONT, 0.5,
                         (0, 255, 50),
@@ -150,7 +160,6 @@ def infer_on_stream(args, client):
                 cv2.addWeighted(overlay, ALPHA, output_img, 1 - ALPHA, 0, output_img)
             # cv2.imshow('frame',output_img)
             ### TODO: Calculate and send relevant information on ###
-
             ### person_counts, total_count and duration to the MQTT server ###
 
             ### Topic "person": keys of "count" and "total" ###
@@ -171,8 +180,6 @@ def infer_on_stream(args, client):
             last_count = person_counts
 
         ### TODO: Send the frame to the FFMPEG server ###
-        # print(image)
-        # print(image.shape)
         sys.stdout.buffer.write(output_img)
         sys.stdout.flush()
         ### TODO: Write an output image if `single_image_mode` ###

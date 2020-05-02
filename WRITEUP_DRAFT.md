@@ -47,4 +47,4 @@ https://docs.openvinotoolkit.org/2019_R3/_docs_MO_DG_prepare_model_Model_Optimiz
 
 **CREDIT**
 Pedistrain video for testing
-https://www.videvo.net/video/crowd-on-bangkok-skywalk-bridge-02/457251/
+https://www.youtube.com/watch?v=dju1olF6ilM

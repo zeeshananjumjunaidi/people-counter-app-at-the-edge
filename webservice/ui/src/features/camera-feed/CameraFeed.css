@@ -14,12 +14,11 @@
     -o-background-size: cover;
     background-size: cover;
 
-    background: #606c88;
-    background: #36355d;
-    background: -moz-linear-gradient(top,  #36355d 0%, #000000 100%);
-    background: -webkit-linear-gradient(top,  #36355d 0%,#000000 100%);
-    background: linear-gradient(to bottom,  #36355d 0%,#000000 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#36355d', endColorstr='#000000',GradientType=0 );
+    background: #eeeeee;
+    background: -moz-linear-gradient(top,  #eeeeee 0%, #eeeeee 100%);
+    background: -webkit-linear-gradient(top,  #eeeeee 0%,#eeeeee 100%);
+    background: linear-gradient(to bottom,  #eeeeee 0%,#eeeeee 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#eeeeee',GradientType=0 );
     
 
 
@@ -33,7 +32,7 @@
     & .camera-feed-img {
       width: 100%;
       height: auto;
-      min-height: 50%;
+      min-height: 100px;
       background: #333;
       padding:5px;
       border-radius:5px;

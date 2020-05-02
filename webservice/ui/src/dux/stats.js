@@ -1,6 +1,10 @@
+
+import mq from "../MqttClient";
+
 // actions
 const TOGGLE_STATS = "features/stats/TOGGLE_STATS";
 const TOGGLE_COUNT = "features/stats/TOGGLE_COUNT";
+const TOGGLE_STREAMING = "features/video/STREAMING";
 
 // initial state
 const initialState = {
@@ -36,4 +40,10 @@ export function toggleStats() {
 
 export function toggleTotalCount() {
   return { type: TOGGLE_COUNT };
+}
+export function streamingOn(){
+  console.log("Hello World");
+  initialState.statsOn = !initialState.statsOn;
+  mq.publish("settings/streaming",initialState.statsOn);
+  return {type:TOGGLE_STREAMING};
 }

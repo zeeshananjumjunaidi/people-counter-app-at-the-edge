@@ -1,9 +1,16 @@
 # Important otherwise openvino might try to use latest installed python version.
-# INPUT="CAM"
+
+# 640x480 for camera
 #INPUT="CAM"
-INPUT="resources/Pedestrian_Detect_2_1_1.mp4"
+# INPUT="resources/Pedestrian_Detect_2_1_1.mp4"
+# 854x480 for traffic.mp4
+X=854
+Y=480
+INPUT="resources/traffic.mp4"
+#INPUT="resources/image_1.png"
 SHOWINFO=true
 MESSAGE="Udacity"
+THRESHOLD=0.4
 #INPUT="resources/Pedistrain_Hong_Kong.mp4"
 python_version=3.5
 source /opt/intel/openvino/bin/setupvars.sh
@@ -21,4 +28,4 @@ LIB="/opt/intel/openvino_2020.2.120/deployment_tools/inference_engine/lib/intel6
 
 # -t $TAG -c $LIB
 #python3.5 pipeline/main.py -i $INPUT -m $MODEL -p 0.7
-python3.5 pipeline/main.py -si $SHOWINFO --message $MESSAGE -i $INPUT -m $MODEL -pt 0.5 | ffmpeg -v warning -f rawvideo -pixel_format bgr24 -video_size 768x432 -framerate 24 -i - http://0.0.0.0:3004/fac.ffm
+python3.5 pipeline/main.py -si $SHOWINFO --message $MESSAGE -i $INPUT -m $MODEL -pt $THRESHOLD   | ffmpeg -v warning -f rawvideo -pixel_format bgr24 -video_size "$X"x$Y -framerate 24 -i - http://0.0.0.0:3004/fac.ffm

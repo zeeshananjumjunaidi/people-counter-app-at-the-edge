@@ -174,7 +174,7 @@ class Stats extends React.Component {
     return (
       <div className={ `stats ${ this.props.statsOn ? "active" : "" }` }>
         { /* Current count */ }
-        <DataBox title="People in frame" data={ this.state.currentCount } />
+        <DataBox title="People in frame" data={ this.state.currentCount } color="red"/>
         <GraphPane graphId="chart1" graphData={ currentCount } graphOptions={ graphOptions } />
         { /* Duration */ }
         <DataBox title="average duration" data={ this.state.currentDurationAvg } color="blue" />

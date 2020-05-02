@@ -12,7 +12,7 @@
     width: 270px;
     height: 36px;
     border-radius: 4px 4px 0 0;
-    background-color: #00aeef;
+    background-color: #333;
     font-size: 1.8rem;
     letter-spacing: -0.2px;
     text-transform: capitalize;
@@ -20,7 +20,7 @@
     @mixin verticalCenter;
   }
   & .data {
-    color: #00aeef;
+    color: #333;
     font-size: 40px;
     font-weight: bold;
     @mixin verticalCenter;
