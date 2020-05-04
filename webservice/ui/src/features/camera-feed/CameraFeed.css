@@ -1,14 +1,14 @@
 .camera-feed {
   & .camera-feed-container {
     width: 100%;
-    height: calc( 100vh - 55px );
+    /* height: calc( 100vh - 55px ); */
     min-height: 60rem;
     margin-top: 0px;
     position: absolute;
     top: 55px;
     line-height: 100%;
     background-color: #ffffff;
-    background: url('../../assets/images/background-02.jpg') no-repeat center center fixed;
+    /* background: url('../../assets/images/background-02.jpg') no-repeat center center fixed; */
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
@@ -25,7 +25,7 @@
     flex-direction: column;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     &:before{
       content: "";
     }
@@ -39,8 +39,7 @@
     }
     &:after{
       content: "";
-    }
-    
+    }    
   }  
   & .check{
     margin-top: 5px;
@@ -108,6 +107,30 @@
       color: #252525;
       text-transform: capitalize;
     }
-  }
-  
+  } 
+}
+.camera-overlay{
+  background:linear-gradient(#fff0, #0909094f);
+  height:45px;
+  width:100%;
+  position: relative;
+  bottom: 50px;
+  text-align: center;
+}
+button{
+  outline:none;
+}
+.clearBtn{
+  background:none;
+  color:white;
+  border:none;
+  outline: none;
+  height: 40px;
+  width: 40px;
+  padding:3px;
+  opacity: 0.6;
+  outline: 0;
+}
+.clearBtn:hover{
+  opacity: 1;
 }

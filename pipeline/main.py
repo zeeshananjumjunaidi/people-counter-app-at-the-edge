@@ -68,7 +68,14 @@ def on_connect(self, client, userdata, flags, rc):
     
 
 def on_message(client, userdata, message):
-    log.log(log.INFO,"Got something",str(message.payload))
+    global streaming_enabled
+    text = message.payload.decode("utf-8")
+    dt = json.loads(str(text))
+    streaming_enabled=dt['result']
+    log.log(log.INFO,"Paylaod... "+text+' '+str(userdata))
+    log.log(log.INFO,"Successful... "+str(dt['result']))
+
+    # log.log(log.INFO,"Got something "+str(message.payload))
 
 
 def infer_on_stream(args, client):
@@ -79,6 +86,7 @@ def infer_on_stream(args, client):
     :param client: MQTT client
     :return: None
     """
+    global streaming_enabled
     # Initialise the class
     infer_network = Network()
     # Set Probability threshold for detections
@@ -135,7 +143,7 @@ def infer_on_stream(args, client):
             output_img, person_counts = get_draw_boxes_on_image(
                 result, frame, prob_threshold,True)
             overlay = output_img.copy()
-            if show_info:                
+            if show_info:
                 cv2.putText(overlay,
                         'Person[s] found: {}'.format(person_counts),
                         (10,overlay.shape[0]-60),
@@ -150,7 +158,7 @@ def infer_on_stream(args, client):
                         (250, 250, 250),
                         2,
                         cv2.LINE_4)
-                cv2.putText(output_img,
+                cv2.putText(overlay,
                         str(datetime.now().strftime("%A, %d. %B %Y %I:%M:%S %p")),
                         (10,overlay.shape[0]-20),
                         FONT, 0.5,
@@ -180,8 +188,10 @@ def infer_on_stream(args, client):
             last_count = person_counts
 
         ### TODO: Send the frame to the FFMPEG server ###
-        sys.stdout.buffer.write(output_img)
-        sys.stdout.flush()
+        if streaming_enabled:
+
+            sys.stdout.buffer.write(output_img)
+            sys.stdout.flush()
         ### TODO: Write an output image if `single_image_mode` ###
         if single_image_mode:
             cv2.imwrite('output_image.jpg', output_img)

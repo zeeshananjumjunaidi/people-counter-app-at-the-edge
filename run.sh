@@ -18,7 +18,7 @@ source /opt/intel/openvino/bin/setupvars.sh
 # cd /opt/intel/openvino/deployment_tools/open_model_zoo/tools/downloader
 # sudo ./downloader.py --name vehicle-attributes-recognition-barrier-0039 --precisions INT8 -o /home/workspace
 
-MODEL="model/intel/person-detection-retail-0013/FP32/person-detection-retail-0013.xml"
+MODEL="model/intel/person-detection-retail-0013/FP16-INT8/person-detection-retail-0013.xml"
 echo "*************"
 echo "INPUT: " $INPUT
 echo "MODEL: " $MODEL

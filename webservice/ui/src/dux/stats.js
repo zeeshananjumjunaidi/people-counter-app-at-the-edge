@@ -13,9 +13,11 @@ const initialState = {
   peopleSeen: [],
   currentCount: 0,
   currentDuration: null,
+  liveStreaming:true
 };
-
-
+export function getPlayerState(){
+ return  initialState.liveStreaming;
+}
 // Reducer
 export default function reducer( state = initialState, action = {} ) {
   switch ( action.type ) {
@@ -43,7 +45,7 @@ export function toggleTotalCount() {
 }
 export function streamingOn(){
   console.log("Hello World");
-  initialState.statsOn = !initialState.statsOn;
-  mq.publish("settings/streaming",initialState.statsOn);
+  initialState.liveStreaming = !initialState.liveStreaming;
+  mq.publish("settings/streaming",{result:initialState.liveStreaming});
   return {type:TOGGLE_STREAMING};
 }
