@@ -206,4 +206,4 @@ To Test your model on openvino, make sure you have succssfully installed openvin
 dependencies such as opencv, numpy, matplotlib, etc...
 navigate to pipeline/testing folder
 run ```./test.sh ```
-You can edit this file change the input file and output directory and model as well.
+You can edit **test.sh** script file to change the input file and output directory and model as well.
