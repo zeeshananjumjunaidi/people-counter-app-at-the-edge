@@ -17,7 +17,7 @@
   & button {
     background-color: transparent;
     border: none;
-    color: var(--intel-azure);
+    color: var(--intel-charcoal);
     outline: none;
   }
 }

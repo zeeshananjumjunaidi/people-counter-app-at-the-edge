@@ -43,7 +43,7 @@ export function toggleStats() {
 export function toggleTotalCount() {
   return { type: TOGGLE_COUNT };
 }
-export function streamingOn(){
+export function toggleStreaming(){
   console.log("Hello World");
   initialState.liveStreaming = !initialState.liveStreaming;
   mq.publish("settings/streaming",{result:initialState.liveStreaming});

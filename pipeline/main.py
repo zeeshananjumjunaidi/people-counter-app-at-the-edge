@@ -18,7 +18,7 @@ IPADDRESS = socket.gethostbyname(HOSTNAME)
 MQTT_HOST = IPADDRESS
 MQTT_PORT = 3001
 MQTT_KEEPALIVE_INTERVAL = 60
-FONT = cv2.FONT_HERSHEY_SIMPLEX
+FONT = cv2.FONT_HERSHEY_PLAIN
 ALPHA=0.9
 log.root.setLevel(log.NOTSET)
 streaming_enabled=True
@@ -63,20 +63,13 @@ def connect_mqtt():
     client.loop_start()
     return client
 def on_connect(self, client, userdata, flags, rc):
-    log.info("MQTT connected: result code=%i", rc)
-    print("This is a retained message")
-    
+    log.info("MQTT connected: result code=%i", rc)    
 
 def on_message(client, userdata, message):
     global streaming_enabled
     text = message.payload.decode("utf-8")
     dt = json.loads(str(text))
     streaming_enabled=dt['result']
-    log.log(log.INFO,"Paylaod... "+text+' '+str(userdata))
-    log.log(log.INFO,"Successful... "+str(dt['result']))
-
-    # log.log(log.INFO,"Got something "+str(message.payload))
-
 
 def infer_on_stream(args, client):
     """
@@ -123,7 +116,7 @@ def infer_on_stream(args, client):
         flag, frame = cap.read()
         if not flag:
             break
-        key_pressed = cv2.waitKey(60)
+        # key_pressed = cv2.waitKey(10)
         ### TODO: Pre-process the image as needed ###
         image = preprocessing(frame, h, w)
 
@@ -145,26 +138,26 @@ def infer_on_stream(args, client):
             overlay = output_img.copy()
             if show_info:
                 cv2.putText(overlay,
-                        'Person[s] found: {}'.format(person_counts),
-                        (10,overlay.shape[0]-60),
-                        FONT, 0.5,
-                        (0, 255, 50),
-                        2,
-                        cv2.LINE_4)
-                cv2.putText(overlay,
                         message,
-                        (10,overlay.shape[0]-40),
-                        FONT, 0.5,
+                        (10,40),
+                        FONT, 1,
                         (250, 250, 250),
                         2,
-                        cv2.LINE_4)
+                        cv2.LINE_AA)
+                cv2.putText(overlay,
+                        'Person[s] found: {}'.format(person_counts),
+                        (10,overlay.shape[0]-40),
+                        FONT, 1,
+                        (255, 255, 255),
+                        1,
+                        cv2.LINE_AA)
                 cv2.putText(overlay,
                         str(datetime.now().strftime("%A, %d. %B %Y %I:%M:%S %p")),
                         (10,overlay.shape[0]-20),
-                        FONT, 0.5,
+                        FONT, 1,
                         (250, 250, 250),
-                        2,
-                        cv2.LINE_4)
+                        1,
+                        cv2.LINE_AA)
                 cv2.addWeighted(overlay, ALPHA, output_img, 1 - ALPHA, 0, output_img)
             # cv2.imshow('frame',output_img)
             ### TODO: Calculate and send relevant information on ###
@@ -184,14 +177,14 @@ def infer_on_stream(args, client):
                 client.publish("person/duration",
                                json.dumps({"duration": duration}))
 
-            client.publish("person", json.dumps({"count": person_counts}))
+                client.publish("person", json.dumps({"count": person_counts}))
             last_count = person_counts
 
         ### TODO: Send the frame to the FFMPEG server ###
         if streaming_enabled:
-
             sys.stdout.buffer.write(output_img)
             sys.stdout.flush()
+            pass
         ### TODO: Write an output image if `single_image_mode` ###
         if single_image_mode:
             cv2.imwrite('output_image.jpg', output_img)

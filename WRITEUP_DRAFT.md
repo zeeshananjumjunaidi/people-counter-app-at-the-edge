@@ -31,6 +31,12 @@ python3.5 $MOD_OPT/mo.py --input_model frozen_inference_graph.pb --tensorflow_ob
 
 Cutting TF Model
 
+# Project Workflow
+## Convert a Model into an Intermediate Representation with the Model Optimizer
+## Load the Model Intermediate Representation into the Inference Engine
+## Check for Custom Layers
+## Handle Inference Requests Asynchronously
+# Return Results
 
 **Reference**
 https://docs.openvinotoolkit.org/2019_R3/_docs_MO_DG_Deep_Learning_Model_Optimizer_DevGuide.html

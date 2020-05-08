@@ -78,8 +78,9 @@ def get_draw_boxes_on_image(boxes, image,prob_threshold=0.5,draw_label=False):
                 #         cv2.LINE_4)
                 #     ID+=1
                 dist=(y_max-y_min)/(y_min+y_max);
+                color = (0,dist*255,255-dist*255)
                 cv2.rectangle(image,(x_min,y_min), (x_max, y_max),
-                 (255-(dist*255),dist*255,0), int(dist*2))
+                 color, int(dist*2))
                 num_detections +=1
         else:
             label_box_pos=None

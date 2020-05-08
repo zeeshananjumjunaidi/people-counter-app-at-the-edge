@@ -2,7 +2,7 @@ import React from "react";
 import "./CameraFeed.css";
 import { HTTP, SETTINGS } from "../../constants/constants";
 import FontAwesome from "react-fontawesome";
-import { streamingOn,getPlayerState } from "../../dux/stats";
+import { toggleStreaming,getPlayerState } from "../../dux/stats";
 
 class CameraFeed extends React.Component {
   constructor(props) {
@@ -11,11 +11,11 @@ class CameraFeed extends React.Component {
     this.mjpgSrc = HTTP.CAMERA_FEED;
     this.refreshImage = this.refreshImage.bind(this);
     this.mjpgSrc = HTTP.CAMERA_FEED;
-    this.isPlaying = getPlayerState();  
+
 
     this.state = {
       mjpgSrc: this.mjpgSrc,
-      isPlaying:getPlayerState()
+      isPlaying:false
     };    
     
     this.togglePlayerState = this.togglePlayerState.bind(this);
@@ -31,9 +31,11 @@ class CameraFeed extends React.Component {
     this.setState({ mjpgSrc: `${this.mjpgSrc}?ver=${d.getTime()}` });
   }
   togglePlayerState(){
-    streamingOn();
-    this.isPlaying = getPlayerState();
-    console.log(this.isPlaying?'Playing':'Paused');
+    toggleStreaming();
+    this.setState({
+      isPlaying :!this.state.isPlaying
+    });
+    console.log(this.state.isPlaying?'Playing':'Paused');
   }
   toggleFullScreen() {
     if (!document.fullscreenElement) {
@@ -55,7 +57,7 @@ class CameraFeed extends React.Component {
             <img src={this.state.mjpgSrc} alt="camera feed" style={imgStyle} onClick={this.refreshImage} className="camera-feed-img" />
             <div className="camera-overlay" style={overlayStyle}>
               <div>{this.state.isPlaying} {this.state.mjpgSrc}</div>
-              <button className="clearBtn" onClick={this.togglePlayerState}>               
+              <button className="clearBtn" onClick={this.togglePlayerState}>             
                 <FontAwesome name={this.state.isPlaying ? 'play' : 'pause'} size="2x" />
               </button>
               <button className="clearBtn" onClick={this.toggleFullScreen}><FontAwesome name="arrows-alt" size="2x" /></button>

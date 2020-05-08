@@ -10,7 +10,7 @@ INPUT="resources/traffic.mp4"
 #INPUT="resources/image_1.png"
 SHOWINFO=true
 MESSAGE="Udacity"
-THRESHOLD=0.4
+THRESHOLD=0.5
 #INPUT="resources/Pedistrain_Hong_Kong.mp4"
 python_version=3.5
 source /opt/intel/openvino/bin/setupvars.sh
@@ -18,13 +18,13 @@ source /opt/intel/openvino/bin/setupvars.sh
 # cd /opt/intel/openvino/deployment_tools/open_model_zoo/tools/downloader
 # sudo ./downloader.py --name vehicle-attributes-recognition-barrier-0039 --precisions INT8 -o /home/workspace
 
-MODEL="model/intel/person-detection-retail-0013/FP16-INT8/person-detection-retail-0013.xml"
+LIB="/opt/intel/openvino_2020.2.120/deployment_tools/inference_engine/lib/intel64/libclDNNPlugin.so"
+MODEL="model/intel/person-detection-retail-0013/FP32/person-detection-retail-0013.xml"
 echo "*************"
 echo "INPUT: " $INPUT
 echo "MODEL: " $MODEL
 echo "*************"
 
-LIB="/opt/intel/openvino_2020.2.120/deployment_tools/inference_engine/lib/intel64/libclDNNPlugin.so"
 
 # -t $TAG -c $LIB
 #python3.5 pipeline/main.py -i $INPUT -m $MODEL -p 0.7
