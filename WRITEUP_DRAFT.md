@@ -1,3 +1,38 @@
+# Deploy a People Counter App at the Edge
+
+| Details           |               |
+|-----------------------|---------------|
+| Programming Language: |  Python 3.5 or 3.6 |
+| Libraries, Framework & Tools: |  NodeJS, TensorFlow, OpenVino, OpenCV |
+| Auhtor: |  Zeeshan Anjum Junaidi |
+
+## Overview
+The people counter application will demonstrate how to create a smart video IoT solution using Intel® hardware and software tools. The app will detect people in a designated area, providing the number of people in the frame, average duration of people in frame, and total count.
+In this project I used **Pedestrain** 🚶🏻‍♀️🚶🏻‍♂️ detection model from **...** and optimize it using **OpenVino 2020.2+** library provided by **Intel®**. This project contains different modules that are integrated together as a system.
+
+
+### Pipeline
+Location ```./pipeline```
+
+This folder contains all the required files used for inference, from loading model, communicate with NodeJS server using MQTT, stream media to FFMPEG.
+ This folder contains all the required files used for inference, from loading model, communicate over MQTT to NodeJS server, stream media to FFMPEG.
+ 
+### Web Service
+Location ```./webservice/```
+- #### UI
+  This module is responsible for user interface. This module communicate with NodeJS server over MQTT.
+  This module also response to show video streaming, allow 
+- #### Server
+  Server will handle communication b/w web UI and the core pipeline.
+### FFMPEG
+Location ```./ffmpeg/ ```
+    This will only contain configuration to run ffserver for streaming.
+  
+  
+----
+## Installation
+Download Latest openvino toolkit.
+
 Install all prerequisite for all frameworks, openvino toolkit supports
 run 
 ``` bash 
