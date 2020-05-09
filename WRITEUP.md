@@ -7,6 +7,7 @@ questions.
 ## Explaining Custom Layers
 
 The process behind converting custom layers involves...
+
 Ans: 
   For Tensorflow:
     Register custom layer as extension in model optimizer OR
@@ -15,6 +16,7 @@ Ans:
 
 
 Some of the potential reasons for handling custom layers are...
+
   Ans:
     The Custom layes known as per their name "Custom" means modified or new. There are variety of frameworks which are used for training the deep learning models such as Keras, Tensorflow, ONNX, Caffe etc.
 
@@ -23,7 +25,7 @@ Some of the potential reasons for handling custom layers are...
     Hence Custom Layer support neccessary for Model Optimizer so that the unsupported operations can be supported through dependent framework during runtime inference.
 
     Model Optimizer query each layer of trained model from the list of known layers (Supported layers) before building the model's internal representation. It also optimizes the model by following three steps. Quantization, Freezing and Fusing. At last it generated the intermidiate representation from the trained model.
-
+---
 ## Comparing Model Performance
 file: ```pipeline/compare_model.py```
 My method(s) to compare models before and after conversion to Intermediate Representations
@@ -52,12 +54,18 @@ Some of the potential use cases of the people counter app are...
     Social distance checking
 
 Each of these use cases would be useful because...
+
 **Crowd Detection** It is very useful to know if there a smooth flow of crowd in mall, sidewalk  or any other place
  and also to know if there is gathering / protest/ riot etc... In this way system could alert the authorities to hanlde the situation.
+ 
  **Security Systems** This can be useful for detection of the number of people, or if there is someone in restricted area.
+ 
  **Audience Statistics** Presentor, or Event Manager can easily count the number of attendees in any type of event to make proper arrangement.
- **Queue counter** This system is very useful in checkout counter to adjust the queue, and fully utilize the resources.
- **Social distance** Recently Covid-19 pandemic impose restriction on people keep social distancing from each other. This system can easily provide this functionality. 
+ 
+ **Queue counter** This system is very useful for checkout counter to adjust the queue, and fully utilize the resources.
+ 
+ **Social distance** Limiting face-to-face contact with others is the best way to reduce the spread of coronavirus disease 2019 (COVID-19). People detection can easily be used by as detecting distance b/w persons. 
+ ref: https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/social-distancing.html
 
 ## Assess Effects on End User Needs
 
