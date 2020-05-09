@@ -135,8 +135,10 @@ Open a new terminal to run the code.
 
 You must configure the environment to use the Intel® Distribution of OpenVINO™ toolkit one time per session by running the following command:
 ```
-source /opt/intel/openvino/bin/setupvars.sh -pyver 3.5
+./run.sh
 ```
+(note: Please configure the run.sh file in project root folder for different input parameters and input file)
+
 
 You should also be able to run the application with Python 3.6, although newer versions of Python will not work with the app.
 
