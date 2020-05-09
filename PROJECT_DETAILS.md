@@ -99,14 +99,6 @@ export MOD_OPT=/opt/intel/openvino/deployment_tools/model_optimizer
 
 python3.5 $MOD_OPT/mo.py --input_model frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config $MOD_OPT/extensions/front/tf/ssd_v2_support.json
 
-Cutting TF Model
-
-# Project Workflow
-## Convert a Model into an Intermediate Representation with the Model Optimizer
-## Load the Model Intermediate Representation into the Inference Engine
-## Check for Custom Layers
-## Handle Inference Requests Asynchronously
-# Return Results
 
 **Reference**
 https://docs.openvinotoolkit.org/2019_R3/_docs_MO_DG_Deep_Learning_Model_Optimizer_DevGuide.html
@@ -120,7 +112,3 @@ https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc
 
 **Learning Resources**
 https://docs.openvinotoolkit.org/2019_R3/_docs_MO_DG_prepare_model_Model_Optimization_Techniques.html
-
-**CREDIT**
-Pedistrain video for testing
-https://www.youtube.com/watch?v=dju1olF6ilM

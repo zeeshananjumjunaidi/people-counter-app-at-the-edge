@@ -52,13 +52,7 @@ class Network:
         self.plugin = IECore()
         model_xml = model
         model_bin = os.path.splitext(model_xml)[0] + ".bin"
-        # if not plugin:
-        #     log.info("Initializing plugin for {} device...".format(device))
-        #     self.plugin = IEPlugin(device=device)
-        # else:
-        #     self.plugin = plugin
-        # if cpu_extension and 'CPU' in device:
-        #     self.plugin.add_cpu_extension(cpu_extension)
+
         self.net = self.plugin.read_network(model=model_xml, weights=model_bin)
         self.net_plugin = self.plugin.load_network(self.net,device_name="CPU")
 
@@ -74,12 +68,7 @@ class Network:
         ### TODO: Add any necessary extensions ###        
         if cpu_extension:
             self.plugin.add_extension(cpu_extension,"CPU")
-        ### TODO: Return the loaded inference plugin ###
         
-        # All above steps are performed in load_to_IE function.
-        # exec_net, input_shape = load_to_IE(model_xml,False)
-        # self.input_shape = input_shape
-        # self.exec_net = exec_net
         self.input_blob = next(iter(self.net.inputs))
         self.out_blob = next(iter(self.net.outputs))
 
@@ -95,12 +84,6 @@ class Network:
         ### TODO: Add code to perform asynchronous inference
         ### Note: Return the exec_net
         self.infer_request_handle = self.net_plugin.start_async(request_id=request_id, inputs={self.input_blob: image})
-        # while True:
-        #     status = self.exec_net.requests[0].wait(-1)
-        #     if status == 0:
-        #         break
-        #     else:
-        #         time.sleep(1)
         return exec_net
 
     def exec_network(self,id,image):

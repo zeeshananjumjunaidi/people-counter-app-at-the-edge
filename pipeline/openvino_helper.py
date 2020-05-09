@@ -49,7 +49,7 @@ def preprocessing(input_image, height, width):
     - Transpose the final "channel" dimension to be first
     - Reshape the image to add a "batch" of 1 at the start 
     '''
-    # image = np.array(input_image)
+    
     image = np.copy(input_image)
     image = cv2.resize(image, (width, height))
     image = image.transpose((2,0,1))

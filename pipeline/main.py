@@ -122,7 +122,7 @@ def infer_on_stream(args, client):
 
         ### TODO: Start asynchronous inference for specified request ###
         inf_start = time.time()
-        #infer_network.async_inference(infer_network.exec_net,cur_request_id, image)
+        
         infer_network.exec_network(cur_request_id, image)
         ### TODO: Wait for the result ###
         output_img = frame
@@ -130,7 +130,7 @@ def infer_on_stream(args, client):
             ### TODO: Get the results of the inference request ###
             det_time = time.time() - inf_start
             result = infer_network.get_output(cur_request_id)
-            # res = infer_network.infer().get("detection_out")
+            
             ### TODO: Extract any desired stats from the results ###
 
             output_img, person_counts = get_draw_boxes_on_image(

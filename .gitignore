@@ -1,5 +1,5 @@
 .installed.cfg
-bin
+**/bin
 develop-eggs
 dist
 downloads
@@ -8,6 +8,5 @@ parts
 src/*.egg-info
 lib
 lib64
-.pyc
-pyc
-__pycache__
+*.pyc
+**/__pycache__
