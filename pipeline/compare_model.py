@@ -20,7 +20,6 @@ def test_from_frozen_graph(pb_file, img_cv2):
         graph_def = tf.GraphDef()
         graph_def.ParseFromString(f.read())
 
-    # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=1)
     with tf.Session() as sess:
         sess.graph.as_default()
         tf.import_graph_def(graph_def, name='')
@@ -42,7 +41,7 @@ def test_from_frozen_graph(pb_file, img_cv2):
 
 def post_convertion(frame, model, cpu_extension, device):
     network = Network()
-    # network.load_model(model, cpu_extension, device)
+    
     network.load_model(model, cpu_extension, 1, 1,
                                           0, cpu_extension)
     processed_frame = pre_process(frame, net_input_shape=network.get_input_shape())
