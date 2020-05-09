@@ -159,7 +159,7 @@ def infer_on_stream(args, client):
                         1,
                         cv2.LINE_AA)
                 cv2.addWeighted(overlay, ALPHA, output_img, 1 - ALPHA, 0, output_img)
-            # cv2.imshow('frame',output_img)
+                
             ### TODO: Calculate and send relevant information on ###
             ### person_counts, total_count and duration to the MQTT server ###
 

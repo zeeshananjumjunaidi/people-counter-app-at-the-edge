@@ -63,18 +63,19 @@ class Network:
         self.net_plugin = self.plugin.load_network(self.net,device_name="CPU")
 
         ### TODO: Check for supported layers ###
-
-        ### TODO: Add any necessary extensions ###        
-        if cpu_extension:
-            self.plugin.add_extension(cpu_extension,"CPU")
-        ### TODO: Return the loaded inference plugin ###
         supported_layers = self.plugin.query_network(network=self.net, device_name="CPU")
+        
         ### Note: You may need to update the function parameters. ###
         unsupported_layers = [l for l in self.net.layers.keys() if l not in supported_layers]
         if len(unsupported_layers) != 0:
             print("Unsupported layers found: {}".format(unsupported_layers))
             print("Check whether extensions are available to add to IECore.")
             exit(1)
+        ### TODO: Add any necessary extensions ###        
+        if cpu_extension:
+            self.plugin.add_extension(cpu_extension,"CPU")
+        ### TODO: Return the loaded inference plugin ###
+        
         # All above steps are performed in load_to_IE function.
         # exec_net, input_shape = load_to_IE(model_xml,False)
         # self.input_shape = input_shape
