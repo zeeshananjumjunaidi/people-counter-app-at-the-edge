@@ -104,95 +104,107 @@ def infer_on_stream(args, client):
     n, c, h, w = infer_network.load_model(args.model, args.device, 1, 1,
                                           cur_request_id, args.cpu_extension)[1]
     ### TODO: Handle the input stream ###
-    cap = cv2.VideoCapture(input_stream)
-    if input_stream:
-        cap.open(args.input)
-    if not cap.isOpened():
-        log.error("ERROR! Unable to open video source")
+    if not single_image_mode:
+        cap = cv2.VideoCapture(input_stream)
+        if input_stream:
+            cap.open(args.input)
+        if not cap.isOpened():
+            log.error("ERROR! Unable to open video source")
 
-    ### TODO: Loop until stream is over ###
-    while cap.isOpened():
-        ### TODO: Read from the video capture ###
-        flag, frame = cap.read()
-        if not flag:
-            break
-        # key_pressed = cv2.waitKey(10)
-        ### TODO: Pre-process the image as needed ###
-        image = preprocessing(frame, h, w)
-
-        ### TODO: Start asynchronous inference for specified request ###
-        inf_start = time.time()
-        
-        infer_network.exec_network(cur_request_id, image)
-        ### TODO: Wait for the result ###
-        output_img = frame
-        if infer_network.wait(cur_request_id) == 0:
-            ### TODO: Get the results of the inference request ###
-            det_time = time.time() - inf_start
-            result = infer_network.get_output(cur_request_id)
+        threshold_count_frame=0
+        ### TODO: Loop until stream is over ###
+        while cap.isOpened():
+            ### TODO: Read from the video capture ###
+            flag, frame = cap.read()
+            if not flag:
+                break
             
-            ### TODO: Extract any desired stats from the results ###
 
-            output_img, person_counts = get_draw_boxes_on_image(
-                result, frame, prob_threshold,True)
-            overlay = output_img.copy()
-            if show_info:
-                cv2.putText(overlay,
-                        message,
-                        (10,40),
-                        FONT, 1,
-                        (250, 250, 250),
-                        2,
-                        cv2.LINE_AA)
-                cv2.putText(overlay,
-                        'Person[s] found: {}'.format(person_counts),
-                        (10,overlay.shape[0]-40),
-                        FONT, 1,
-                        (255, 255, 255),
-                        1,
-                        cv2.LINE_AA)
-                cv2.putText(overlay,
-                        str(datetime.now().strftime("%A, %d. %B %Y %I:%M:%S %p")),
-                        (10,overlay.shape[0]-20),
-                        FONT, 1,
-                        (250, 250, 250),
-                        1,
-                        cv2.LINE_AA)
-                cv2.addWeighted(overlay, ALPHA, output_img, 1 - ALPHA, 0, output_img)
+            ### TODO: Pre-process the image as needed ###
+            image = preprocessing(frame, h, w)
+
+            ### TODO: Start asynchronous inference for specified request ###
+            inf_start = time.time()
+            
+            infer_network.exec_network(cur_request_id, image)
+            ### TODO: Wait for the result ###
+            output_img = frame
+            if infer_network.wait(cur_request_id) == 0:
+                ### TODO: Get the results of the inference request ###
+                det_time = time.time() - inf_start
+                result = infer_network.get_output(cur_request_id)
                 
-            ### TODO: Calculate and send relevant information on ###
-            ### person_counts, total_count and duration to the MQTT server ###
+                ### TODO: Extract any desired stats from the results ###
 
-            ### Topic "person": keys of "count" and "total" ###
-            # Person duration in the video is calculated
-            if person_counts > last_count:
-                start_time = time.time()
-                total_count = total_count + person_counts - last_count
-                client.publish("person", json.dumps({"total": total_count}))
-            ### Topic "person/duration": key of "duration" ###
-            # Person duration in the video is calculated
-            if person_counts < last_count:
-                duration = int(time.time() - start_time)
-                # Publish messages to the MQTT server
-                client.publish("person/duration",
-                               json.dumps({"duration": duration}))
+                output_img, person_counts = get_draw_boxes_on_image(
+                    result, frame, prob_threshold,True)
+                overlay = output_img.copy()
+                if show_info:
+                    cv2.putText(overlay,
+                            message,
+                            (10,40),
+                            FONT, 1,
+                            (250, 250, 250),
+                            2,
+                            cv2.LINE_AA)
+                    cv2.putText(overlay,
+                            'Person[s] found: {}'.format(person_counts),
+                            (10,overlay.shape[0]-40),
+                            FONT, 1,
+                            (255, 255, 255),
+                            1,
+                            cv2.LINE_AA)
+                    cv2.putText(overlay,
+                            str(datetime.now().strftime("%A, %d. %B %Y %I:%M:%S %p")),
+                            (10,overlay.shape[0]-20),
+                            FONT, 1,
+                            (250, 250, 250),
+                            1,
+                            cv2.LINE_AA)
+                    cv2.addWeighted(overlay, ALPHA, output_img, 1 - ALPHA, 0, output_img)
+                    
+                ### TODO: Calculate and send relevant information on ###
+                ### person_counts, total_count and duration to the MQTT server ###
 
-                client.publish("person", json.dumps({"count": person_counts}))
-            last_count = person_counts
+                ### Topic "person": keys of "count" and "total" ###
+                # Person duration in the video is calculated
+                if person_counts > last_count:
+                    start_time = time.time()
+                    total_count = total_count + person_counts - last_count
+                    threshold_count_frame+=1
+                    client.publish("person", json.dumps({"total": total_count}))
+                ### Topic "person/duration": key of "duration" ###
+                # Person duration in the video is calculated
+                if person_counts < last_count:
+                    duration = int(time.time() - start_time)
+                    # Publish messages to the MQTT server
+                    client.publish("person/duration",
+                                json.dumps({"duration": duration}))
 
-        ### TODO: Send the frame to the FFMPEG server ###
-        if streaming_enabled:
-            sys.stdout.buffer.write(output_img)
-            sys.stdout.flush()
-            pass
-        ### TODO: Write an output image if `single_image_mode` ###
-        if single_image_mode:
+                    client.publish("person", json.dumps({"count": person_counts}))
+                last_count = person_counts
+
+            ### TODO: Send the frame to the FFMPEG server ###
+            if streaming_enabled:
+                sys.stdout.buffer.write(output_img)
+                sys.stdout.flush()
+                pass
+        if cap:
+            cap.release()
+            cv2.destroyAllWindows()
+            client.disconnect()
+            infer_network.dispose()
+
+    ### TODO: Write an output image if `single_image_mode` ###
+    elif single_image_mode:
+        frame = cv2.imread(input_stream)
+        image = preprocessing(frame, h, w)
+        infer_network.exec_network(0, image)
+        if infer_network.wait(0) == 0:
+            result = infer_network.get_output(0)
+            output_img, person_counts = get_draw_boxes_on_image(
+                        result, frame, prob_threshold,True)
             cv2.imwrite('output_image.jpg', output_img)
-
-    cap.release()
-    cv2.destroyAllWindows()
-    client.disconnect()
-    infer_network.dispose()
 
 
 def main():
