@@ -7,7 +7,6 @@ import time
 def pre_process(frame, net_input_shape):
     p_frame = cv2.resize(frame, (net_input_shape[3], net_input_shape[2]))
     p_frame = p_frame.transpose(2, 0, 1)
-    # p_frame = np.expand_dims(p_frame, axis=1)
     p_frame = p_frame.reshape(1, *p_frame.shape)
     return p_frame
 
