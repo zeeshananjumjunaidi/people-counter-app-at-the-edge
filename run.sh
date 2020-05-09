@@ -1,6 +1,8 @@
 # Important otherwise openvino might try to use latest installed python version.
 python_version=3.5
-
+# This is for debugging purpose only. to stop this script press ctrl + z 
+# first run a without it and make sure it is working fine
+KEEP_RUNNING=false
 # 640x480 for camera
 #INPUT="CAM"
 X=854
@@ -31,5 +33,13 @@ echo "running pipeline for image sequences"
 python3.5 pipeline/main.py -si $SHOWINFO --message $MESSAGE -i $INPUT -m $MODEL -pt $THRESHOLD  
 else
 echo "running pipeline for video streaming..."
-python3.5 pipeline/main.py -si $SHOWINFO --message $MESSAGE -i $INPUT -m $MODEL -pt $THRESHOLD   | ffmpeg -v warning -f rawvideo -pixel_format bgr24 -video_size "$X"x$Y -framerate 24 -i - http://0.0.0.0:3004/fac.ffm
+if [[ $KEEP_RUNNING == true ]];then
+    while(true);
+    do
+        python3.5 pipeline/main.py -si $SHOWINFO --message $MESSAGE -i $INPUT -m $MODEL -pt $THRESHOLD   | ffmpeg -v warning -f rawvideo -pixel_format bgr24 -video_size "$X"x$Y -framerate 24 -i - http://0.0.0.0:3004/fac.ffm
+    done
+else
+        python3.5 pipeline/main.py -si $SHOWINFO --message $MESSAGE -i $INPUT -m $MODEL -pt $THRESHOLD   | ffmpeg -v warning -f rawvideo -pixel_format bgr24 -video_size "$X"x$Y -framerate 24 -i - http://0.0.0.0:3004/fac.ffm
+fi
+
 fi
