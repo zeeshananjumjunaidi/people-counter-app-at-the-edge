@@ -7,7 +7,7 @@ import cv2
 from datetime import datetime
 import logging as log
 import paho.mqtt.client as mqtt
-
+import timeit
 from argparse import ArgumentParser
 from inference import Network
 from openvino_helper import preprocessing
@@ -86,6 +86,7 @@ def infer_on_stream(args, client):
     prob_threshold = args.prob_threshold
     cur_request_id = 0
     last_count = 0
+    reset=True
     total_count = 0
     start_time = 0
     single_image_mode = False
@@ -111,7 +112,13 @@ def infer_on_stream(args, client):
         if not cap.isOpened():
             log.error("ERROR! Unable to open video source")
 
-        threshold_count_frame=0
+        detection_frame_count=0
+        total_frame_count =0
+        start=None
+        previous_detection_time=None
+        last_person_counts = []
+        average_person_count =0
+        detection_time = None
         ### TODO: Loop until stream is over ###
         while cap.isOpened():
             ### TODO: Read from the video capture ###
@@ -119,7 +126,6 @@ def infer_on_stream(args, client):
             if not flag:
                 break
             
-
             ### TODO: Pre-process the image as needed ###
             image = preprocessing(frame, h, w)
 
@@ -162,27 +168,49 @@ def infer_on_stream(args, client):
                             1,
                             cv2.LINE_AA)
                     cv2.addWeighted(overlay, ALPHA, output_img, 1 - ALPHA, 0, output_img)
+
+                    if len(last_person_counts)>10:
+                            # removing last value
+                        last_person_counts =last_person_counts[1:len(last_person_counts)-1]
+                    last_person_counts.append(person_counts)
                     
+                    average_person_count =int(sum(last_person_counts)/len(last_person_counts))
+
+                    if person_counts>0:                        
+                        previous_detection_time=timeit.default_timer()
+                        if reset:
+                            duration = timeit.default_timer()
+                            reset = False
+                        detection_frame_count+=1
+                        total_frame_count+=1
+                    # if we have 10 continous frame having no detection its mean we are sure there is no detection.
+                    # this would work good in case of people crossing side of the camera boundry.
+                    elif total_frame_count - detection_frame_count>10: # magic numbers shouldn't be used everywhere.
+                        detection_frame_count = 0
+                        total_frame_count = 0
+
                 ### TODO: Calculate and send relevant information on ###
                 ### person_counts, total_count and duration to the MQTT server ###
-
+                #person_counts =
+                # count
                 ### Topic "person": keys of "count" and "total" ###
-                # Person duration in the video is calculated
-                if person_counts > last_count:
-                    start_time = time.time()
-                    total_count = total_count + person_counts - last_count
-                    threshold_count_frame+=1
-                    client.publish("person", json.dumps({"total": total_count}))
-                ### Topic "person/duration": key of "duration" ###
-                # Person duration in the video is calculated
-                if person_counts < last_count:
-                    duration = int(time.time() - start_time)
-                    # Publish messages to the MQTT server
-                    client.publish("person/duration",
-                                json.dumps({"duration": duration}))
+                # Person duration in the video is calculated                
+                if previous_detection_time is not None:
+                    if timeit.default_timer()- previous_detection_time > 1.5:
+                        x = 1/0
+                        reset = True
+                        total_count=0 # here we have no detection for atleast 1.5 seconds
+                if not reset:
+                    client.publish("person/duration", json.dumps({"duration":int(timeit.default_timer()- duration)}))
+                    total_count = 0
+                # client.publish("person", json.dumps({"total": total_count}))
+                client.publish("person", json.dumps({"count": average_person_count}))
+                #client.publish("person", json.dumps({"total": average_person_count}))
 
-                    client.publish("person", json.dumps({"count": person_counts}))
-                last_count = person_counts
+
+          
+                # client.publish("person", json.dumps({"count": person_counts}))
+                # last_count = person_counts
 
             ### TODO: Send the frame to the FFMPEG server ###
             if streaming_enabled:
