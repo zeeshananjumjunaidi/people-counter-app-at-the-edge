@@ -48,35 +48,18 @@ def get_draw_boxes_on_image(boxes, image,prob_threshold=0.5,draw_label=False):
         with a confidence greater than 0, paint the bounding boxes on image
         and counts them
     '''
-    global last_box_pos
     image_h, image_w, _ = image.shape
     num_detections = 0
-    ID=1
     for box in boxes[0][0]:
-        img_id  = box[0]
         label   = box[1]
         conf    = box[2]
-        x_min   = box[3]* image_w
-        y_min   = box[4]*image_h
-        x_max   = box[5]*image_w
-        y_max   = box[6]*image_h
-        x_min=int(x_min)
-        y_min=int(y_min)
-        x_max=int(x_max)
-        y_max=int(y_max)
-        #print('image id:{}, label:{}, confidence:{}, Xmin:{}, Ymin:{}, Xmax:{}, Ymax:{}'.
-        #format(image_id,label,conf,x_min,y_min,x_max,y_max))
+        x_min   = int(box[3]* image_w)
+        y_min   = int(box[4]*image_h)
+        x_max   = int(box[5]*image_w)
+        y_max   = int(box[6]*image_h)
+
         if(label==1):
             if(conf>prob_threshold):
-                # if draw_label:
-                #     cv2.putText(image,
-                #         'Person #{}'.format(img_id),
-                #         (x_min+5,y_min+5),
-                #         FONT, 0.5,
-                #         (0, 255, 50),
-                #         2,
-                #         cv2.LINE_4)
-                #     ID+=1
                 dist=(y_max-y_min)/(y_min+y_max);
                 color = (0,dist*255,255-dist*255)
                 cv2.rectangle(image,(x_min,y_min), (x_max, y_max),

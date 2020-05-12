@@ -10,7 +10,8 @@ import paho.mqtt.client as mqtt
 import timeit
 from argparse import ArgumentParser
 from inference import Network
-from openvino_helper import preprocessing
+from openvino_helper import preprocessing,reidentification_preprocess
+from sklearn.metrics.pairwise import cosine_similarity
 from utility import *
 # MQTT server environment variables
 HOSTNAME = socket.gethostname()
@@ -50,6 +51,9 @@ def build_argparser():
     parser.add_argument("-pt", "--prob_threshold", type=float, default=0.3,
                         help="Probability threshold for detections filtering"
                         "(0.5 by default)")
+
+    parser.add_argument("-rim", "--reident_model", type=str, default=None,
+                        help="Provide model for reidentification")
     return parser
 
 
@@ -71,6 +75,38 @@ def on_message(client, userdata, message):
     dt = json.loads(str(text))
     streaming_enabled=dt['result']
 
+def reidentification(id,networkReIdentification, crop_person, identification_input_shape, total_unique_persons, conf):
+    log.Logger(str(identification_input_shape))
+    idetification_frame = reidentification_preprocess(crop_person, net_input_shape=identification_input_shape)
+    networkReIdentification.exec_network(id,idetification_frame)
+    if networkReIdentification.wait(id) == 0:  # 256 dimentional unique descriptor
+        ident_output = networkReIdentification.get_output(id)
+        for i in range(len(ident_output)):
+            if (len(total_unique_persons) == 0):
+                # print(ident_output[i].reshape(1,-1).shape)
+                total_unique_persons.append(ident_output[i].reshape(1, -1))
+            else:
+                # print("Checking SIMILARITY WITH PREVIOUS PEOPLE IF THEY MATCH THEN ALTERTING PERSON COMES SECONF TIME ELSE INCREMENTING TOTAL PEOPLE")
+                newFound = True
+                detected_person = ident_output[i].reshape(1, -1)
+                for index in range(len(total_unique_persons)):  # checking that detected person is in out list or not
+                    similarity = cosine_similarity(detected_person, total_unique_persons[index])[0][0]
+                    # print(similarity)
+                    if similarity > 0.65: #0.58
+                        # print("SAME PERSON FOUD")
+                        # print(str(similarity) + "at "+str(index))
+                        newFound = False
+                        total_unique_persons[index] = detected_person  # updating detetected one
+                        break
+
+                if newFound and conf > 0.90:
+                    total_unique_persons.append(detected_person)
+                    # print('NEW PERSON FOUND')
+        # print(len(total_unique_persons))
+        return total_unique_persons
+
+
+
 def infer_on_stream(args, client):
     """
     Initialize the inference network, stream video to network,
@@ -82,6 +118,12 @@ def infer_on_stream(args, client):
     global streaming_enabled
     # Initialise the class
     infer_network = Network()
+
+
+
+
+    total_unique_persons = []
+
     # Set Probability threshold for detections
     prob_threshold = args.prob_threshold
     cur_request_id = 0
@@ -104,6 +146,12 @@ def infer_on_stream(args, client):
     ### TODO: Load the model through `infer_network` ###
     n, c, h, w = infer_network.load_model(args.model, args.device, 1, 1,
                                           cur_request_id, args.cpu_extension)[1]
+
+    # Intialize class for reidentification
+    networkReIdentification = Network()
+    networkReIdentification.load_model(args.reident_model, args.device, 1, 1,cur_request_id, args.cpu_extension)
+    identification_input_shape = networkReIdentification.get_input_shape()
+
     ### TODO: Handle the input stream ###
     if not single_image_mode:
         cap = cv2.VideoCapture(input_stream)
@@ -142,8 +190,34 @@ def infer_on_stream(args, client):
                 
                 ### TODO: Extract any desired stats from the results ###
 
-                output_img, person_counts = get_draw_boxes_on_image(
-                    result, frame, prob_threshold,True)
+                # output_img, person_counts = get_draw_boxes_on_image(
+                #     result, frame, prob_threshold,True)
+
+                image_h, image_w, _ = frame.shape
+                num_detections = 0
+                for box in result[0][0]:
+                    label   = box[1]
+                    conf    = box[2]
+                    x_min   = int(box[3]* image_w)
+                    y_min   = int(box[4]*image_h)
+                    x_max   = int(box[5]*image_w)
+                    y_max   = int(box[6]*image_h)
+                    
+                    if label == 1:
+                        if(conf>prob_threshold):
+                            dist=(y_max-y_min)/(y_min+y_max);
+                            color = (0,dist*255,255-dist*255)
+                            cv2.rectangle(frame,(x_min,y_min), (x_max, y_max),color, int(dist*2))
+                            num_detections +=1
+
+                            crop_person = frame[y_min:y_max, x_min:x_max]
+                            total_unique_persons = reidentification(cur_request_id,networkReIdentification, crop_person,
+                                                                    identification_input_shape, total_unique_persons, conf)
+                    else:
+                        label_box_pos=None                
+
+                person_counts=num_detections
+
                 overlay = output_img.copy()
                 if show_info:
                     cv2.putText(overlay,
@@ -197,15 +271,16 @@ def infer_on_stream(args, client):
                 # Person duration in the video is calculated                
                 if previous_detection_time is not None:
                     if timeit.default_timer()- previous_detection_time > 1.5:
-                        x = 1/0
                         reset = True
                         total_count=0 # here we have no detection for atleast 1.5 seconds
                 if not reset:
                     client.publish("person/duration", json.dumps({"duration":int(timeit.default_timer()- duration)}))
                     total_count = 0
                 # client.publish("person", json.dumps({"total": total_count}))
-                client.publish("person", json.dumps({"count": average_person_count}))
-                #client.publish("person", json.dumps({"total": average_person_count}))
+                # client.publish("person", json.dumps({"count": average_person_count}))
+                # client.publish("person", json.dumps({"total": len(total_unique_persons)}))
+                log.info(len(total_unique_persons))
+                client.publish("person", json.dumps({"count": str(person_counts), "total": len(total_unique_persons)}))
 
 
           
@@ -233,6 +308,8 @@ def infer_on_stream(args, client):
             output_img, person_counts = get_draw_boxes_on_image(
                         result, frame, prob_threshold,True)
             cv2.imwrite('output_image.jpg', output_img)
+
+
 
 
 def main():

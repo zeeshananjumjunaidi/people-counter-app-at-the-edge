@@ -11,3 +11,10 @@ sudo add-apt-repository ppa:fkrull/deadsnakes
 sudo apt update
 sudo apt install libpython3.6-dev
 ```
+To Install sklearn for python3.5 on linux OS.
+run following
+```
+python3.5 -m pip install scikit-learn
+==0.21
+```
+latest versions aren't supported

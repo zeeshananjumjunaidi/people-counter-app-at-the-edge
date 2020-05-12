@@ -9,7 +9,7 @@ const TOGGLE_STREAMING = "features/video/STREAMING";
 // initial state
 const initialState = {
   statsOn: false,
-  totalCountOn: false,
+  totalCountOn: true,
   peopleSeen: [],
   currentCount: 0,
   currentDuration: null,
