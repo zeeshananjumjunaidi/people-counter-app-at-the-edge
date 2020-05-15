@@ -74,3 +74,7 @@ deployed edge model. The potential effects of each of these are as follows...
   - False positive has been detected in some cases, such as pedistrain image, or a small tree look far from the camera.
   - Low luminosity, occluded by big objects or by other person cause false negative results.
   - Large differences in training dataset camera angle with the inference images would also result in invalid result.
+
+## CREDIT 
+For reidentification functionality, following repository helped a lot.
+- [KMKnation/nd131-openvino-fundamentals-project-starter](https://github.com/KMKnation/nd131-openvino-fundamentals-project-starter)

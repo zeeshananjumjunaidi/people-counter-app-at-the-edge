@@ -8,6 +8,7 @@ from datetime import datetime
 import logging as log
 import paho.mqtt.client as mqtt
 import timeit
+from collections import deque
 from argparse import ArgumentParser
 from inference import Network
 from openvino_helper import preprocessing,reidentification_preprocess
@@ -79,30 +80,23 @@ def reidentification(id,networkReIdentification, crop_person, identification_inp
     log.Logger(str(identification_input_shape))
     idetification_frame = reidentification_preprocess(crop_person, net_input_shape=identification_input_shape)
     networkReIdentification.exec_network(id,idetification_frame)
-    if networkReIdentification.wait(id) == 0:  # 256 dimentional unique descriptor
+    if networkReIdentification.wait(id) == 0:
         ident_output = networkReIdentification.get_output(id)
         for i in range(len(ident_output)):
             if (len(total_unique_persons) == 0):
-                # print(ident_output[i].reshape(1,-1).shape)
                 total_unique_persons.append(ident_output[i].reshape(1, -1))
             else:
-                # print("Checking SIMILARITY WITH PREVIOUS PEOPLE IF THEY MATCH THEN ALTERTING PERSON COMES SECONF TIME ELSE INCREMENTING TOTAL PEOPLE")
                 newFound = True
                 detected_person = ident_output[i].reshape(1, -1)
                 for index in range(len(total_unique_persons)):  # checking that detected person is in out list or not
                     similarity = cosine_similarity(detected_person, total_unique_persons[index])[0][0]
-                    # print(similarity)
                     if similarity > 0.65: #0.58
-                        # print("SAME PERSON FOUD")
-                        # print(str(similarity) + "at "+str(index))
                         newFound = False
                         total_unique_persons[index] = detected_person  # updating detetected one
                         break
 
                 if newFound and conf > 0.90:
                     total_unique_persons.append(detected_person)
-                    # print('NEW PERSON FOUND')
-        # print(len(total_unique_persons))
         return total_unique_persons
 
 
@@ -123,17 +117,27 @@ def infer_on_stream(args, client):
 
 
     total_unique_persons = []
-
+    use_reidentification=False
     # Set Probability threshold for detections
-    prob_threshold = args.prob_threshold
+    if not args.prob_threshold is None:
+        prob_threshold = args.prob_threshold
+    else:
+        prob_threshold = 0.2
+        
     cur_request_id = 0
-    last_count = 0
-    reset=True
-    total_count = 0
-    start_time = 0
+    last_detection_time=None
+    duration=0
+        
+    start = None
+    
     single_image_mode = False
-    show_info = args.show_info
-    message = args.message
+    show_info =False
+    if args.show_info:
+        show_info = args.show_info
+    message = None
+    if args.message:    
+        message = args.message
+    
     if args.input == 'CAM':
         input_stream = 0
     elif args.input.endswith('.jpg') or args.input.endswith('.bmp')or args.input.endswith('.png'):
@@ -143,14 +147,20 @@ def infer_on_stream(args, client):
     else:
         input_stream = args.input
         assert os.path.isfile(args.input), "Specified input file doesn't exist"
+
     ### TODO: Load the model through `infer_network` ###
     n, c, h, w = infer_network.load_model(args.model, args.device, 1, 1,
                                           cur_request_id, args.cpu_extension)[1]
 
     # Intialize class for reidentification
-    networkReIdentification = Network()
-    networkReIdentification.load_model(args.reident_model, args.device, 1, 1,cur_request_id, args.cpu_extension)
-    identification_input_shape = networkReIdentification.get_input_shape()
+    networkReIdentification =None
+    identification_input_shape = None
+
+    if args.reident_model:
+        networkReIdentification = Network()
+        networkReIdentification.load_model(args.reident_model, args.device, 1, 1,cur_request_id, args.cpu_extension)
+        identification_input_shape = networkReIdentification.get_input_shape()
+        use_reidentification= True
 
     ### TODO: Handle the input stream ###
     if not single_image_mode:
@@ -162,11 +172,18 @@ def infer_on_stream(args, client):
 
         detection_frame_count=0
         total_frame_count =0
-        start=None
         previous_detection_time=None
         last_person_counts = []
         average_person_count =0
         detection_time = None
+
+        total_seconds_elapsed_for_detection=0
+
+        # Parameters for duration
+        max_len = 40
+        track_threshold = 0.2 
+        track  = deque(maxlen=max_len)
+
         ### TODO: Loop until stream is over ###
         while cap.isOpened():
             ### TODO: Read from the video capture ###
@@ -190,31 +207,47 @@ def infer_on_stream(args, client):
                 
                 ### TODO: Extract any desired stats from the results ###
 
-                # output_img, person_counts = get_draw_boxes_on_image(
-                #     result, frame, prob_threshold,True)
-
                 image_h, image_w, _ = frame.shape
                 num_detections = 0
                 for box in result[0][0]:
                     label   = box[1]
                     conf    = box[2]
-                    x_min   = int(box[3]* image_w)
-                    y_min   = int(box[4]*image_h)
-                    x_max   = int(box[5]*image_w)
-                    y_max   = int(box[6]*image_h)
                     
                     if label == 1:
                         if(conf>prob_threshold):
+                            x_min   = int(box[3]* image_w)
+                            y_min   = int(box[4]*image_h)
+                            x_max   = int(box[5]*image_w)
+                            y_max   = int(box[6]*image_h)
                             dist=(y_max-y_min)/(y_min+y_max);
                             color = (0,dist*255,255-dist*255)
-                            cv2.rectangle(frame,(x_min,y_min), (x_max, y_max),color, int(dist*2))
-                            num_detections +=1
+                            if use_reidentification:
+                                try:
+                                    if conf >0.85:
+                                        crop_person = frame[y_min:y_max, x_min:x_max]
 
-                            crop_person = frame[y_min:y_max, x_min:x_max]
-                            total_unique_persons = reidentification(cur_request_id,networkReIdentification, crop_person,
-                                                                    identification_input_shape, total_unique_persons, conf)
+                                        total_unique_persons = reidentification(cur_request_id,networkReIdentification, crop_person,
+                                                                                identification_input_shape, total_unique_persons, conf)
+                                except Exception as err:
+                                    pass
+
+
+                            cv2.rectangle(frame,(x_min,y_min), (x_max, y_max),color, int(1))
+                            num_detections +=1
+                            last_detection_time = datetime.now()
+                            if start is None:
+                                start = time.time()
+                                time.clock()
                     else:
-                        label_box_pos=None                
+                        label_box_pos=None        
+                    if last_detection_time is not None:
+                        second_diff = (datetime.now() - last_detection_time).total_seconds()
+                        if second_diff >= 1.5:
+                            if start is not None and num_detections == 0:
+                                elapsed = time.time() - start
+                                client.publish("person/duration", json.dumps({"duration": elapsed}))
+                                start = None
+                                last_detection_time = None
 
                 person_counts=num_detections
 
@@ -241,51 +274,19 @@ def infer_on_stream(args, client):
                             (250, 250, 250),
                             1,
                             cv2.LINE_AA)
-                    cv2.addWeighted(overlay, ALPHA, output_img, 1 - ALPHA, 0, output_img)
+                    cv2.addWeighted(overlay, ALPHA, output_img, 1 - ALPHA, 0, output_img)              
+           
 
-                    if len(last_person_counts)>10:
-                            # removing last value
-                        last_person_counts =last_person_counts[1:len(last_person_counts)-1]
-                    last_person_counts.append(person_counts)
-                    
-                    average_person_count =int(sum(last_person_counts)/len(last_person_counts))
+            if len(last_person_counts)>10:
+                last_person_counts = last_person_counts[1:len(last_person_counts)-1]
+            last_person_counts.append(person_counts)
 
-                    if person_counts>0:                        
-                        previous_detection_time=timeit.default_timer()
-                        if reset:
-                            duration = timeit.default_timer()
-                            reset = False
-                        detection_frame_count+=1
-                        total_frame_count+=1
-                    # if we have 10 continous frame having no detection its mean we are sure there is no detection.
-                    # this would work good in case of people crossing side of the camera boundry.
-                    elif total_frame_count - detection_frame_count>10: # magic numbers shouldn't be used everywhere.
-                        detection_frame_count = 0
-                        total_frame_count = 0
-
-                ### TODO: Calculate and send relevant information on ###
-                ### person_counts, total_count and duration to the MQTT server ###
-                #person_counts =
-                # count
-                ### Topic "person": keys of "count" and "total" ###
-                # Person duration in the video is calculated                
-                if previous_detection_time is not None:
-                    if timeit.default_timer()- previous_detection_time > 1.5:
-                        reset = True
-                        total_count=0 # here we have no detection for atleast 1.5 seconds
-                if not reset:
-                    client.publish("person/duration", json.dumps({"duration":int(timeit.default_timer()- duration)}))
-                    total_count = 0
-                # client.publish("person", json.dumps({"total": total_count}))
-                # client.publish("person", json.dumps({"count": average_person_count}))
-                # client.publish("person", json.dumps({"total": len(total_unique_persons)}))
-                log.info(len(total_unique_persons))
-                client.publish("person", json.dumps({"count": str(person_counts), "total": len(total_unique_persons)}))
+            average_person_count =int(sum(last_person_counts)/len(last_person_counts))
 
 
-          
-                # client.publish("person", json.dumps({"count": person_counts}))
-                # last_count = person_counts
+
+            client.publish("person", json.dumps({"count": str(person_counts), "total": len(total_unique_persons)}))
+                     
 
             ### TODO: Send the frame to the FFMPEG server ###
             if streaming_enabled:
